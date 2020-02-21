@@ -116,7 +116,7 @@ In the below explanation I would simplify it by splitting the operations in a tw
 						<br>
 						Here we learn three paramters <b>Q1w,K1w,V1w</b> which converts the input to a lower dimensional space of length 64 (64 because 512/(8 heads)  = 64 , we concatenate the vectors from 8 attention heads to make it 512 again)
 						<br>
-						Q1w,K1w,V1w = [512 x 64]
+						Q1w,K1w,V1w = [512 x 64] (Replicate the matrices batch size times) == [4 x 512 x 64]
 						<br>
 						Q1^ = Q1 * Q1w = [4 x 10 x 64]
 						<br>
