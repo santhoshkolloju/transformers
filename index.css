@@ -1,0 +1,22 @@
+.header{
+	background-color: #4f525b;
+	height: 60px;
+	padding-top: 8px;
+}
+.header a{
+	color: white;
+}
+
+.content{
+	margin-top: 2%;
+}
+
+
+
+p{
+	color: #000;
+    font-size: 19px;
+    line-height: 25px;
+    width: auto;
+
+}
