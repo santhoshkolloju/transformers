@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Understading Matrix Operations In Transformers</title>
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="index.js"></script>
+	<link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-12 header">
+				
+				  <a class="navbar-brand" href="#">
+				    <img src="https://avatars3.githubusercontent.com/u/4193817?s=460&v=4" width="30" height="30" class="d-inline-block align-top" alt="">
+				    Santhosh Kolloju
+				  </a>
+				  <a class="nav-link" style= "display: inline-block;float: right;" href="#">Blog <span class="sr-only">(current)</span></a>
+
+			</div>
+		</div>
+
+		
+	</div>
+	<div class="container">
+			
+			<div class="col-md-12 " >
+				<h1 style="text-align: center;">Understanding the Matrix Operations In Transformer Architecture </h1>
+				<p>
+					I wanted to write this article for a long time, there have been many excellent articles explaining the transformer architecture in detail like <a href="http://jalammar.github.io/illustrated-transformer/"> Annotated Transfomer </a>. The article covers in detail about every building block of transformers. I would like to extend the article to explain how the matrix operations happen during the training as well as inference.
+				</p>
+				<p style="margin-top:10px;">
+					Transformer architecture is faster compared to LSTM is because of parallel batched multiplications which happen behind the scenes. It's hard to understand this process because it happens in a multi-dimensional space.
+In the below explanation I would simplify it by splitting the operations in a two dimensional space which are easier to understand.
+
+				</p>
+				<h3 style="text-align: center;">Transformer Architecture </h3>
+				<img src="https://mchromiak.github.io/articles/2017/Sep/12/Transformer-Attention-is-all-you-need/img/encoder.png">
+
+				<h3 >Major components of transfomer are  </h3>
+				<ul>
+					<li>Encoder Block
+						<ul>
+							<li>Word Embedding</li>
+							<li>Postional Embedding</li>
+							<li>Multi Head Self Attention</li>
+						</ul>
+
+					</li>
+					<li>Decoder Block
+						<ul>
+							<li>Word Embedding</li>
+							<li>Postional Embedding</li>
+							<li>Multi Head Self Attention</li>
+							<li>Multi Head Encoder-Decoder Attention</li>
+						</ul>
+					</li>
+				</ul>
+
+				<p style="margin-top:10px;">
+				Training of transfomer happens in parallel (all words are passed one shot unlike the autoregressive way in LSTM).
+				Inference in  transformer happens in a auto regressive way.(give sos token predict first word then next word ..so on)
+
+				</p>
+				<p style="margin-top:10px;">
+					To understand the mathematical operations in transformer lets take an example of grammatical error correction.
+					<br>
+					<b>source sentence :</b> I going to school today.
+					<br>
+					<b>target setnece  :</b> I am going to school today.
+					<br>
+
+					Lets assume the basic trainsfomer architecture which has 6 blocks, 8 attention heads and 512 dimesnion of hidden state.As all the 6 blocks have similar operations below is the explanation for one block.
+
+				</p>
+				<h3 style="text-align: center;">Training Phase</h3>
+				
+				<p style="margin-top:10px;">
+					Once we have parallel data (source & target sentence) as mentioned above.
+					<br>
+					Lets take the batch size for training is 4 , and vocab size is 30k
+					<br>
+					<br>
+					<b>tokens =</b> [4 x 10] -- batch size x sequence length(no of words)
+					<br>
+					<b>one hot encoded tokens = </b>b[4 x 10 x 30k]
+					<br>
+					<br>
+					Word embedding layer is a matrix which projects the one hot encoded tokens into a hidden dimension of length 512.
+					<br>
+					Wt = [30k x 512]
+					<br>
+					<b>word embedding =</b> (one hot encoded tokens) * (Wt) -- [4 x 10 x 512]
+					<br>
+					<br>
+					Postional embedding is a vector of length 512 which uniquly represents an index in the sequence of tokens .
+					Better explanation <a href="http://jalammar.github.io/illustrated-transformer/"> here </a>
+					<br>
+					<b>positional embedding =</b> [4 x 10 x 512]
+					<br>
+					<br>
+					<b>input to encoder =</b> word embedding  + positional embedding -- [4 x 10 x 512] (matrix addition)
+					<br>
+					<br>
+					<h4 style="text-align: center;">Self Attention</h4>
+					There are 8 heads in Self Attention layer of the transformer, all the heads have similar calculations but without parameter sharing.
+					</p>
+		
+				
+					<p style="margin-top:10px;">
+						<h5 style="text-align: center;">Attention Head 1</h5>
+						<b>Q1 = K1 = V1 = </b> [4 x 10 x 512](input to encoder)
+						<br>
+						Here we learn three paramters <b>Q1w,K1w,V1w</b> which converts the input to a lower dimensional space of length 64 (64 because 512/(8 heads)  = 64 , we concatenate the vectors from 8 attention heads to make it 512 again)
+						<br>
+						Q1w,K1w,V1w = [512 x 64]
+						<br>
+						Q1^ = Q1 * Q1w = [4 x 10 x 64]
+						<br>
+						K1^ = K1 * K1w = [4 x 10 x 64]
+						<br>
+						V1^ = V1 * V1w = [4 x 10 x 64]
+						<br>
+						matrix [ m x n ] * [n x k ] = [m x k]
+						<br>
+						<b>Attention: Q1^ x K1^(transpose) =</b> [4 x 10 x 64] * [4 x 64 x 10] == [4 x 10 x 10] --> Softmax --> [4 x 10 x 10]
+						<br>
+						Assuming there are no padding tokens in the batch for simplicity. we now got a attention matrix which shows importance of each word with respect to other words in the sentence.And this a bidirectional attention as each word can see the future words as well.
+						<br> 
+						<b>Weighted Context Vector = </b> Attention * V1^ == [4 x 10 x 10] * [4 x 10 x 64] == [4 x 10 x 64]
+						<br>
+						matrix [ p x m x n] * [p x n x k] == [p x m x k]
+						<br>
+						<br>
+
+						<b>Output of Attention head 1 = Weighted Context Vector  =</b> [4 x 10 x 64]
+
+
+					</p>
+					<p style="margin-top:10px;">
+						<h5 style="text-align: center;">Attention Head 2</h5>
+						<b>Q2 = K2 = V2 = </b> [4 x 10 x 512](input to encoder)
+						<br>
+						Here again we learn three paramters <b>Q2w,K2w,V2w</b> 
+						<br>
+						Q2w,K2w,V2w = [512 x 64]
+						<br>
+						Q2^ = Q2 * Q2w = [4 x 10 x 64]
+						<br>
+						K2^ = K2 * K2w = [4 x 10 x 64]
+						<br>
+						V2^ = V2 * V2w = [4 x 10 x 64]
+						<br>
+						matrix [ m x n ] * [n x k ] = [m x k]
+						<br>
+						<b>Attention: Q2^ x K2^(transpose) =</b> [4 x 10 x 64] * [4 x 64 x 10] == [4 x 10 x 10] --> Softmax --> [4 x 10 x 10]
+						<br>
+						Assuming there are no padding tokens in the batch for simplicity. we now got a attention matrix which shows importance of each word with respect to other words in the sentence.And this a bidirectional attention as each word can see the future words as well.
+						<br> 
+						<b>Weighted Context Vector = </b> Attention * V2^ == [4 x 10 x 10] * [4 x 10 x 64] == [4 x 10 x 64]
+						<br>
+						matrix [ p x m x n] * [p x n x k] == [p x m x k]
+						<br>
+						<br>
+
+						<b>Output of Attention head 2 = Weighted Context Vector  =</b> [4 x 10 x 64]
+
+
+					</p>
+					<p style="margin-top:10px;">
+						Similar calcualtion happens at other attention heads as well.
+						<br>
+						<b>Output of block 1 of encoder = </b> concatenation of ouput from 8 heads = [4 x 10 x 512](concatenation of 8 matrices on the last dimension)
+
+					</p>
+
+				
+
+
+
+			</div>
+
+
+
+		</div>
+
+</body>
+</html>
